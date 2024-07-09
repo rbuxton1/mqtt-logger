@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+	<meta charset="UTF-8">
+	<title>MQTT Logger</title>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	</head>
+	<body>
+	<div>
+	<h1>Last Data</h1>
+	<p id="lastData"></p>
+	<br><hr>
+	<h1>Last 100 data</h1>
+	<canvas id="last100"></canvas>
+	<p id="last100Avgs"></p>
+	<br><hr>
+	<h1>Last 100 Minute Intervals</h1>
+	<canvas id="last100minutes"></canvas>
+	<p id="last100MinutesAvgs"></p>
+	<br><hr>
+	<h1>Last 100 15 Minute Intervals</h1>
+	<canvas id="last15minutes"></canvas>
+	<p id="last10015MinuteAvgs"></p>
+	<br><hr>
+	<h1>Last 100 Hour Intervals</h1>
+	<canvas id="last100hours"></canvas>
+	<p id="last100HoursAvgs"></p>
+	</div>
+	</body>
+	<script>
+		(async () => {
+			// Get the data and massage it to readable format
+			const resp = await fetch('/graphData');
+			const data = await resp.json();
+			const sensors = data.last100.datasets.map(ds => ds.label);
+
+			console.log('data', data);
+
+			const setAvgs = (target, datasets) => {
+				let strings = datasets.map((ds, i) => {
+					return `&emsp;<b>${ds.label}</b> ${ds.avg} ${ds.data.at(-1)} ${i % 2 == 1 ? '<br>' : ''}`;
+				}).join('');
+				document.getElementById(target).innerHTML = `
+					<b>Averages (${datasets[0].data.length}/100)</b><br>
+					${strings}
+				`
+			}
+
+			// Charts
+			const last100 = document.getElementById('last100');
+			new Chart(last100, {
+				type: 'line',
+				data: data.last100,
+				options: {
+					scales: {
+						y: {
+							beginAtZero: true
+						},
+						x: {
+							ticks: {
+								display: true,
+								autoSkip: true,
+								maxTicksLimit: 20,
+							},
+						},
+					}
+				}
+			});
+			setAvgs('last100Avgs', data.last100.datasets);
+			
+			const last100minutes = document.getElementById('last100minutes');
+			new Chart(last100minutes, {
+				type: 'line',
+				data: data.last100Minutes,
+					options: {
+					scales: {
+						y: {
+							beginAtZero: true
+						},
+						x: {
+							ticks: {
+								display: true,
+								autoSkip: true,
+								maxTicksLimit: 20,
+							},
+						},
+					}
+				}
+			});
+			setAvgs('last100MinutesAvgs', data.last100Minutes.datasets);
+			
+			const last15minutes = document.getElementById('last15minutes');
+			new Chart(last15minutes, {
+				type: 'line',
+				data: data.last100FifteenMinutes,
+				options: {
+					scales: {
+						y: {
+							beginAtZero: true
+							},
+						x: {
+							ticks: {
+								display: true,
+								autoSkip: true,
+								maxTicksLimit: 20,
+							},
+						},
+					}
+				}
+			});
+			setAvgs('last10015MinuteAvgs', data.last100FifteenMinutes.datasets);
+			
+			const last100hours = document.getElementById('last100hours');
+			new Chart(last100hours, {
+				type: 'line',
+				data: data.last100Hours,
+				options: {
+					scales: {
+						y: {
+							beginAtZero: true
+						},
+						x: {
+							ticks: {
+								display: true,
+								autoSkip: true,
+								maxTicksLimit: 20,
+							},
+						},
+					}
+				}
+			});
+			setAvgs('last100HoursAvgs', data.last100Hours.datasets);
+
+			document.getElementById('lastData').innerHTML = data.last100.datasets.map((ds, i) => {
+				return `&emsp;&emsp;<b>${ds.label}</b> ${ds.data.at(-1)} ${i % 2 == 1 ? '<br>' : ''}`;
+			}).join('');
+		})();
+	</script>
+</html>

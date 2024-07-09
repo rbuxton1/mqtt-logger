@@ -38,7 +38,7 @@
 
 			const setAvgs = (target, datasets) => {
 				let strings = datasets.map((ds, i) => {
-					return `&emsp;<b>${ds.label}</b> ${ds.avg} ${ds.data.at(-1)} ${i % 2 == 1 ? '<br>' : ''}`;
+					return `&emsp;<b>${ds.label}</b> ${ds.avg} ${i % 2 == 1 ? '<br>' : ''}`;
 				}).join('');
 				document.getElementById(target).innerHTML = `
 					<b>Averages (${datasets[0].data.length}/100)</b><br>
@@ -132,7 +132,7 @@
 			setAvgs('last100HoursAvgs', data.last100Hours.datasets);
 
 			document.getElementById('lastData').innerHTML = data.last100.datasets.map((ds, i) => {
-				return `&emsp;&emsp;<b>${ds.label}</b> ${ds.data.at(-1)} ${i % 2 == 1 ? '<br>' : ''}`;
+				return `&emsp;&emsp;<b>${ds.label}</b> ${Math.trunc(ds.data.at(-1) * 100) / 100} ${i % 2 == 1 ? '<br>' : ''}`;
 			}).join('');
 		})();
 	</script>

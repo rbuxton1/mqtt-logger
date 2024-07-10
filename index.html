@@ -39,7 +39,11 @@
 
 			const setAvgs = (target, datasets) => {
 				let strings = datasets.map((ds, i) => {
-					return `&emsp;<b>${ds.label}</b> ${ds.avg} ${i % 2 == 1 ? '<br>' : ''}`;
+					let display = ds.config ? ds.config.display.replace('$', ds.avg) : ds.avg
+			    let range = ds?.config?.ranges ?
+			      ds?.config?.ranges.find(range => ds.avg >= range.min && ds.avg < range.max)
+			    : false;
+					return `&emsp;<b>${ds.label}</b> ${display} ${range && range?.index !== -1 ? `(${range.label})` : ''} ${i % 2 == 1 ? '<br>' : ''}`;
 				}).join('');
 				document.getElementById(target).innerHTML = `
 					<b>Averages (${datasets[0].data.length}/100)</b><br>
@@ -149,7 +153,12 @@
 			setAvgs('last100HoursAvgs', data.last100Hours.datasets);
 
 			document.getElementById('lastData').innerHTML = data.last100.datasets.map((ds, i) => {
-				return `&emsp;&emsp;<b>${ds.label}</b> ${Math.trunc(ds.data.at(-1).y * 100) / 100} ${i % 2 == 1 ? '<br>' : ''}`;
+			  let val = Math.trunc(ds.data.at(-1).y * 100) / 100;
+			  let display = ds.config ? ds.config.display.replace('$', val) : val
+			  let range = ds?.config?.ranges ?
+			    ds?.config?.ranges.find(range => val >= range.min && val < range.max)
+			  : false;
+				return `&emsp;<b>${ds.label}</b> ${display} ${range && range?.index !== -1 ? `(${range.label})` : ''}  ${i % 2 == 1 ? '<br>' : ''}`;
 			}).join('');
 		})();
 	</script>

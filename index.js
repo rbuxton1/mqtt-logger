@@ -1,6 +1,7 @@
 const mqtt = require('mqtt');
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 
 const client  = mqtt.connect(process.env.BROKER, {
 	clientId: 'logger',
@@ -48,7 +49,7 @@ client.on('message', (topic, message) => {
 	console.log('MQTT:', topic, '> ', message.toString());
 	const newTime = new Date().toString();
 	let prevData = data;
-	console.log(data[topic]?.last100?.at(0)?.time?.split(' ')?.at(4), data[topic]?.last100?.at(-1)?.time?.split(' ')?.at(4), data[topic]?.last100?.length, data[topic]?.last100Minutes?.at(0)?.time?.split(' ')?.at(4), data[topic]?.last100Minutes?.at(-1)?.time?.split(' ')?.at(4), data[topic]?.last100Minutes?.length);
+	//console.log(data[topic]?.last100?.at(0)?.time?.split(' ')?.at(4), data[topic]?.last100?.at(-1)?.time?.split(' ')?.at(4), data[topic]?.last100?.length, data[topic]?.last100Minutes?.at(0)?.time?.split(' ')?.at(4), data[topic]?.last100Minutes?.at(-1)?.time?.split(' ')?.at(4), data[topic]?.last100Minutes?.length);
 	
 	if (typeof(message) != 'boolean' && !isNaN(message)) {
 		data[topic] = {
@@ -57,7 +58,7 @@ client.on('message', (topic, message) => {
 					[
 						createObject(message.toString(), newTime),
 						...data[topic]?.last100
-					].slice(0, 100)//filter(el => getTimeDiffAsMinutes(newTime, el.time) < 1)
+					].slice(0, 100)
 				:
 					[
 						createObject(message.toString(), newTime)
@@ -128,43 +129,36 @@ client.on('message', (topic, message) => {
 	}
 });
 
+client.on('error', (error) => {
+    console.error(error);
+});
+
 app.get('/data', (req, res) => {
 	res.send(data);
 });
 
+app.post('/config', (req, res) => {
+    let config = req.body;
+    fs.writeFile('./config.json', config, 'utf-8', (err, data) => {
+        if (err) res.send({success: false, error: err});
+        else res.send({...config, success: true});
+    });
+});
+
 app.get('/graphData', (req, res) => {
 	const timeScales = Object.keys(data[Object.keys(data)[0]]);
+	let config = JSON.parse(fs.readFileSync('./config.json', 'utf-8'));
 	
 	let graphData = timeScales.reduce((ret, currScale) => {
 		ret[currScale] = Object.keys(data).reduce((sensorRet, currSensor) => {
 			// sensorRet[currSensor] = rawData[currSensor][currScale];
 			if (!currSensor.includes('status')) {
-				//if (sensorRet.datasets.length === 0) {
-				//	sensorRet['labels'] = currScale !== 'last100HourIntervals' ?
-				//			(data[currSensor][currScale].sort((a, b) => new Date(a.time) - new Date(b.time)).map(point => new Date(point.time).toTimeString().split(' ')[0]))
-				//		:
-				//			(data[currSensor][currScale].sort((a, b) => new Date(a.time) - new Date(b.time)).map(point => `${new Date(point.time).toDateString().split(' ')[0]} ${new Date(point.time).toTimeString().split(' ')[0]}`))
-				//}
-				
 				// Handle cases where the data might not match the labels 
-				let sensorData = data[currSensor][currScale];
-				//if (sensorRet.labels.length > sensorData.length) {
-				//	let missingData = sensorRet.labels.slice(0, sensorRet.labels.length - sensorData.length)
-				//	sensorData = [
-				//		...missingData.map(md => { 
-				//			return {
-				//				time: md,
-				//				val: 0
-				//			}
-				//		}),
-				//		...sensorData
-				//	];
-					//TODO The above would only work for situations where this is running and then the sensor becomes active. If the 
-					// sensor was running and stopped then came back this would not work correctly and wouldnt work if the data became stale.
-				//}	    	
+				let sensorData = data[currSensor][currScale];	    	
 			    
 				sensorRet.datasets.push({
 					label: currSensor,
+					config: config[currSensor] || undefined,
 					data: sensorData.sort((a, b) => new Date(a.time) - new Date(b.time)).map(point => { return { x: new Date(point.time), y: point.val } }),
 					avg: Math.trunc(data[currSensor][currScale].sort((a, b) => new Date(a.time) - new Date(b.time)).map(point => point.val).reduce((acc, next) => acc + parseFloat(next), 0.0) / data[currSensor][currScale].length * 100) / 100,
 					borderWidth: 1

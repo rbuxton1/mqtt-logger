@@ -12,6 +12,7 @@ const client  = mqtt.connect(process.env.BROKER, {
 	reconnectPeriod: 1000,
 });
 const app = express();
+app.use(express.json());
 
 client.on('connect', () => {
 	client.subscribe('#', (err) => {
@@ -139,7 +140,7 @@ app.get('/data', (req, res) => {
 
 app.post('/config', (req, res) => {
     let config = req.body;
-    fs.writeFile('./config.json', config, 'utf-8', (err, data) => {
+    fs.writeFile('./config.json', JSON.stringify(config), 'utf-8', (err, data) => {
         if (err) res.send({success: false, error: err});
         else res.send({...config, success: true});
     });

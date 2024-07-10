@@ -39,9 +39,33 @@
 		"ranges": [
 			{
 				"min": 0,
+				"max": 250,
+				"label": "Excellent",
+				"index": 1
+			},
+			{
+				"min": 250,
+				"max": 1000,
+				"label": "Good",
+				"index": 2
+			},
+			{
+				"min": 1000,
+				"max": 2000,
+				"label": "Fair",
+				"index": 3
+			},
+			{
+				"min": 2000,
+				"max": 5000,
+				"label": "Poor",
+				"index": 4
+			},
+			{
+				"min": 5000,
 				"max": 65000,
-				"label": "?",
-				"index": -1
+				"label": "Bad",
+				"index": 5
 			}
 		]
 	},

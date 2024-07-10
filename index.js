@@ -139,37 +139,40 @@ app.get('/graphData', (req, res) => {
 		ret[currScale] = Object.keys(data).reduce((sensorRet, currSensor) => {
 			// sensorRet[currSensor] = rawData[currSensor][currScale];
 			if (!currSensor.includes('status')) {
-				if (sensorRet.datasets.length === 0) {
-					sensorRet['labels'] = currScale !== 'last100HourIntervals' ?
-							(data[currSensor][currScale].sort((a, b) => new Date(a.time) - new Date(b.time)).map(point => new Date(point.time).toTimeString().split(' ')[0]))
-						:
-							(data[currSensor][currScale].sort((a, b) => new Date(a.time) - new Date(b.time)).map(point => `${new Date(point.time).toDateString().split(' ')[0]} ${new Date(point.time).toTimeString().split(' ')[0]}`))
-				}
-
+				//if (sensorRet.datasets.length === 0) {
+				//	sensorRet['labels'] = currScale !== 'last100HourIntervals' ?
+				//			(data[currSensor][currScale].sort((a, b) => new Date(a.time) - new Date(b.time)).map(point => new Date(point.time).toTimeString().split(' ')[0]))
+				//		:
+				//			(data[currSensor][currScale].sort((a, b) => new Date(a.time) - new Date(b.time)).map(point => `${new Date(point.time).toDateString().split(' ')[0]} ${new Date(point.time).toTimeString().split(' ')[0]}`))
+				//}
+				
+				// Handle cases where the data might not match the labels 
 				let sensorData = data[currSensor][currScale];
-				if (sensorRet.labels.length > sensorData.length) {
-					let missingData = sensorRet.labels.slice(0, sensorRet.labels.length - sensorData.length)
-					sensorData = [
-						...missingData.map(md => { 
-							return {
-								time: md,
-								val: 0
-							}
-						}),
-						...sensorData
-					];
-				}	    	
+				//if (sensorRet.labels.length > sensorData.length) {
+				//	let missingData = sensorRet.labels.slice(0, sensorRet.labels.length - sensorData.length)
+				//	sensorData = [
+				//		...missingData.map(md => { 
+				//			return {
+				//				time: md,
+				//				val: 0
+				//			}
+				//		}),
+				//		...sensorData
+				//	];
+					//TODO The above would only work for situations where this is running and then the sensor becomes active. If the 
+					// sensor was running and stopped then came back this would not work correctly and wouldnt work if the data became stale.
+				//}	    	
 			    
 				sensorRet.datasets.push({
 					label: currSensor,
-					data: sensorData.sort((a, b) => new Date(a.time) - new Date(b.time)).map(point => point.val),
+					data: sensorData.sort((a, b) => new Date(a.time) - new Date(b.time)).map(point => { return { x: new Date(point.time), y: point.val } }),
 					avg: Math.trunc(data[currSensor][currScale].sort((a, b) => new Date(a.time) - new Date(b.time)).map(point => point.val).reduce((acc, next) => acc + parseFloat(next), 0.0) / data[currSensor][currScale].length * 100) / 100,
 					borderWidth: 1
 			    	});
 			}
 
 			return sensorRet;
-		}, {labels: [], datasets: []})
+		}, {/*labels: [],*/ datasets: []})
 		
 		return ret;
 	}, {});

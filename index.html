@@ -1,31 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-	<meta charset="UTF-8">
-	<title>MQTT Logger</title>
-	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+		<meta charset="UTF-8">
+		<title>MQTT Logger</title>
+		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 	</head>
 	<body>
-	<div>
-	<h1>Last Data</h1>
-	<p id="lastData"></p>
-	<br><hr>
-	<h1>Last 100 data</h1>
-	<canvas id="last100"></canvas>
-	<p id="last100Avgs"></p>
-	<br><hr>
-	<h1>Last 100 Minute Intervals</h1>
-	<canvas id="last100minutes"></canvas>
-	<p id="last100MinutesAvgs"></p>
-	<br><hr>
-	<h1>Last 100 15 Minute Intervals</h1>
-	<canvas id="last15minutes"></canvas>
-	<p id="last10015MinuteAvgs"></p>
-	<br><hr>
-	<h1>Last 100 Hour Intervals</h1>
-	<canvas id="last100hours"></canvas>
-	<p id="last100HoursAvgs"></p>
-	</div>
+		<div>
+			<h1>Last Data</h1>
+			<p id="lastData"></p>
+			<br><hr>
+			<h1>Last 100 data</h1>
+			<canvas id="last100"></canvas>
+			<p id="last100Avgs"></p>
+			<br><hr>
+			<h1>Last 100 Minute Intervals</h1>
+			<canvas id="last100minutes"></canvas>
+			<p id="last100MinutesAvgs"></p>
+			<br><hr>
+			<h1>Last 100 15 Minute Intervals</h1>
+			<canvas id="last15minutes"></canvas>
+			<p id="last10015MinuteAvgs"></p>
+			<br><hr>
+			<h1>Last 100 Hour Intervals</h1>
+			<canvas id="last100hours"></canvas>
+			<p id="last100HoursAvgs"></p>
+		</div>
 	</body>
 	<script>
 		(async () => {
@@ -57,11 +58,15 @@
 							beginAtZero: true
 						},
 						x: {
+							type: 'time',
+							display: true,
+							offset: true,
 							ticks: {
-								display: true,
-								autoSkip: true,
-								maxTicksLimit: 20,
+								source: 'data'
 							},
+							time: {
+								unit: 'minute'
+							}
 						},
 					}
 				}
@@ -72,17 +77,21 @@
 			new Chart(last100minutes, {
 				type: 'line',
 				data: data.last100Minutes,
-					options: {
+				options: {
 					scales: {
 						y: {
 							beginAtZero: true
 						},
 						x: {
+							type: 'time',
+							display: true,
+							offset: true,
 							ticks: {
-								display: true,
-								autoSkip: true,
-								maxTicksLimit: 20,
+								source: 'data'
 							},
+							time: {
+								unit: 'minute'
+							}
 						},
 					}
 				}
@@ -97,13 +106,17 @@
 					scales: {
 						y: {
 							beginAtZero: true
-							},
+						},
 						x: {
+							type: 'time',
+							display: true,
+							offset: true,
 							ticks: {
-								display: true,
-								autoSkip: true,
-								maxTicksLimit: 20,
+								source: 'data'
 							},
+							time: {
+								unit: 'minute'
+							}
 						},
 					}
 				}
@@ -120,11 +133,15 @@
 							beginAtZero: true
 						},
 						x: {
+							type: 'time',
+							display: true,
+							offset: true,
 							ticks: {
-								display: true,
-								autoSkip: true,
-								maxTicksLimit: 20,
+								source: 'data'
 							},
+							time: {
+								unit: 'minute'
+							}
 						},
 					}
 				}
@@ -132,7 +149,7 @@
 			setAvgs('last100HoursAvgs', data.last100Hours.datasets);
 
 			document.getElementById('lastData').innerHTML = data.last100.datasets.map((ds, i) => {
-				return `&emsp;&emsp;<b>${ds.label}</b> ${Math.trunc(ds.data.at(-1) * 100) / 100} ${i % 2 == 1 ? '<br>' : ''}`;
+				return `&emsp;&emsp;<b>${ds.label}</b> ${Math.trunc(ds.data.at(-1).y * 100) / 100} ${i % 2 == 1 ? '<br>' : ''}`;
 			}).join('');
 		})();
 	</script>
